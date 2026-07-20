@@ -1,6 +1,6 @@
 # 植物大战僵尸 Web 版 — 详细实施计划
 
-> 状态：**开发中（PR+TDD）** · PR-001 已合并  
+> 状态：**开发中（PR+TDD）** · PR-001 / PR-002 已合并  
 > 最后更新：2026-07-20  
 > 约束：**横屏** · **无登录** · **React 生态** · **玩法尽量丰富** · 进度本地存  
 > 流程：见 [§13 开发工作流](#13-开发工作流-pr--tdd) · PR 映射见 [§14](#14-pr-与节点映射)
@@ -396,7 +396,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-002 已合并 main，https://github.com/ShellMonster/pvz-web/pull/2） |
 | 目标 | 五页路由 + 统一 16:9 居中壳 |
 | 工作内容 | React Router；`Shell` 黑边 letterbox；首页/选关/游戏/图鉴/设置占位；导航 |
 | 交付物 | 可点击切换的页面骨架 |
@@ -792,7 +792,7 @@ IMAGE_MODEL=gpt-image-2
 |----|------|------|------|
 | N0 | 计划锁定 | — | ✅ |
 | N1 | 工程脚手架 | N0 | ✅ |
-| N2 | 路由与横屏壳 | N1 | ⬜ |
+| N2 | 路由与横屏壳 | N1 | ✅ |
 | N3 | shadcn 组件 | N1 | ⬜ |
 | N4 | 本地存档 | N1 | ⬜ |
 | N5 | 数据层 | N1 | ⬜ |
@@ -822,9 +822,9 @@ IMAGE_MODEL=gpt-image-2
 
 | 项 | 值 |
 |----|-----|
-| 当前 PR | **PR-002**（路由 + 横屏壳 / N2） |
-| 已合并 | PR-001 → https://github.com/ShellMonster/pvz-web/pull/1 |
-| 下一动作 | 按 §13 执行 PR-002 |
+| 当前 PR | **PR-003**（shadcn UI kit + 主题 / N3） |
+| 已合并 | PR-001 → #1 · PR-002 → https://github.com/ShellMonster/pvz-web/pull/2 |
+| 下一动作 | 按 §13 执行 PR-003 |
 
 ---
 
@@ -909,7 +909,7 @@ IMAGE_MODEL=gpt-image-2
 | PR | 标题 | 覆盖节点 | 依赖 PR | 验收摘要 |
 |----|------|----------|---------|----------|
 | **PR-001** ✅ | chore: project scaffold | N1 | — | Vite+React+TS+Vitest 可 dev/test/build · [merged #1](https://github.com/ShellMonster/pvz-web/pull/1) |
-| **PR-002** | feat: routes + landscape shell | N2 | 001 | 五页路由 + 16:9 Shell |
+| **PR-002** ✅ | feat: routes + landscape shell | N2 | 001 | 五页路由 + 16:9 Shell · [merged #2](https://github.com/ShellMonster/pvz-web/pull/2) |
 | **PR-003** | feat: shadcn ui kit + theme | N3 | 001 | Button/Dialog/Switch 等可用 |
 | **PR-004** | feat: local progress & settings store | N4 | 001 | localStorage 存读/重置 |
 | **PR-005** | feat: plants zombies levels data | N5 | 001 | 类型化数据 + 单测 |
