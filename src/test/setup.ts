@@ -1,1 +1,11 @@
 import '@testing-library/jest-dom/vitest'
+
+// Radix UI (Slider etc.) needs ResizeObserver in jsdom.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
+}

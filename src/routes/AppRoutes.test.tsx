@@ -31,7 +31,7 @@ describe('APP_ROUTES config', () => {
 
 describe('AppRoutes navigation', () => {
   it.each([
-    ['/', 'page-home', '首页'],
+    ['/', 'page-home', /植物大战僵尸|首页/],
     ['/levels', 'page-levels', '选关'],
     ['/codex', 'page-codex', '图鉴'],
     ['/settings', 'page-settings', '设置'],

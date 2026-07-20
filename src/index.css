@@ -2,6 +2,10 @@
 
 :root {
   color-scheme: dark;
+  --game-grass: #1b5e20;
+  --game-dirt: #5d4037;
+  --game-sun: #fbc02d;
+  --game-lime: #aed581;
   font-family:
     system-ui,
     -apple-system,
