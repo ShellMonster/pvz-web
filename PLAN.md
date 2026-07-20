@@ -1,6 +1,6 @@
 # 植物大战僵尸 Web 版 — 详细实施计划
 
-> 状态：**开发中（PR+TDD）**  
+> 状态：**开发中（PR+TDD）** · PR-001 已合并  
 > 最后更新：2026-07-20  
 > 约束：**横屏** · **无登录** · **React 生态** · **玩法尽量丰富** · 进度本地存  
 > 流程：见 [§13 开发工作流](#13-开发工作流-pr--tdd) · PR 映射见 [§14](#14-pr-与节点映射)
@@ -382,11 +382,11 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-001 已合并 main，https://github.com/ShellMonster/pvz-web/pull/1） |
 | 目标 | 可运行的 React+Vite+TS+Tailwind 空项目 |
-| 工作内容 | 初始化 Vite React-TS；配 Tailwind、路径别名 `@/`；ESLint；基础 `README` 启动说明 |
-| 交付物 | `package.json`、可 `pnpm dev` 打开空白页 |
-| 验收 | 浏览器打开无报错，热更新正常 |
+| 工作内容 | 初始化 Vite React-TS；配 Tailwind、路径别名 `@/`；oxlint + CI；基础 `README` 启动说明 |
+| 交付物 | `package.json`、可 `pnpm dev` / `pnpm test` / `pnpm build` |
+| 验收 | Vitest 通过；生产构建通过；横屏壳可打开 |
 | 依赖 | N0 |
 | 估时 | 0.5h–1h |
 
@@ -791,7 +791,7 @@ IMAGE_MODEL=gpt-image-2
 | ID | 名称 | 依赖 | 状态 |
 |----|------|------|------|
 | N0 | 计划锁定 | — | ✅ |
-| N1 | 工程脚手架 | N0 | ⬜ |
+| N1 | 工程脚手架 | N0 | ✅ |
 | N2 | 路由与横屏壳 | N1 | ⬜ |
 | N3 | shadcn 组件 | N1 | ⬜ |
 | N4 | 本地存档 | N1 | ⬜ |
@@ -822,9 +822,9 @@ IMAGE_MODEL=gpt-image-2
 
 | 项 | 值 |
 |----|-----|
-| 当前 PR | PR-001（脚手架） |
-| 已合并 | 无（仅 PLAN 在 main） |
-| 下一动作 | 按 §13 执行 PR-001 |
+| 当前 PR | **PR-002**（路由 + 横屏壳 / N2） |
+| 已合并 | PR-001 → https://github.com/ShellMonster/pvz-web/pull/1 |
+| 下一动作 | 按 §13 执行 PR-002 |
 
 ---
 
@@ -908,7 +908,7 @@ IMAGE_MODEL=gpt-image-2
 
 | PR | 标题 | 覆盖节点 | 依赖 PR | 验收摘要 |
 |----|------|----------|---------|----------|
-| **PR-001** | chore: project scaffold | N1 | — | Vite+React+TS+Vitest 可 dev/test/build |
+| **PR-001** ✅ | chore: project scaffold | N1 | — | Vite+React+TS+Vitest 可 dev/test/build · [merged #1](https://github.com/ShellMonster/pvz-web/pull/1) |
 | **PR-002** | feat: routes + landscape shell | N2 | 001 | 五页路由 + 16:9 Shell |
 | **PR-003** | feat: shadcn ui kit + theme | N3 | 001 | Button/Dialog/Switch 等可用 |
 | **PR-004** | feat: local progress & settings store | N4 | 001 | localStorage 存读/重置 |
