@@ -4,8 +4,8 @@
 
 ## 要求
 
-- Node.js 20+
-- pnpm 推荐
+- Node.js **≥ 20.19**（推荐 22 LTS）
+- **pnpm 10.10+**（见 `packageManager` 字段）
 
 ## 安装与运行
 
