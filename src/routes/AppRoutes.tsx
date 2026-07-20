@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import {
   LandscapeShell,
-  type ShellFrame,
+  type SimulateClient,
 } from '@/components/layout/LandscapeShell'
 import { CodexPage } from '@/pages/CodexPage'
 import { GamePage } from '@/pages/GamePage'
@@ -11,15 +11,18 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { getRouteById } from '@/routes/routeConfig'
 
 export interface AppRoutesProps {
-  /** Injected shell size for letterbox tests (production omits this). */
-  shellFrame?: ShellFrame
+  /**
+   * Test hook: raw outer client size + padding (not a pre-fitted frame).
+   * Production omits this and measures the DOM.
+   */
+  simulateClient?: SimulateClient
 }
 
 /**
  * Route tree without a Router provider — use BrowserRouter in production
  * and MemoryRouter in tests.
  */
-export function AppRoutes({ shellFrame }: AppRoutesProps = {}) {
+export function AppRoutes({ simulateClient }: AppRoutesProps = {}) {
   const home = getRouteById('home')
   const levels = getRouteById('levels')
   const game = getRouteById('game')
@@ -28,7 +31,7 @@ export function AppRoutes({ shellFrame }: AppRoutesProps = {}) {
 
   return (
     <Routes>
-      <Route element={<LandscapeShell frame={shellFrame} />}>
+      <Route element={<LandscapeShell simulateClient={simulateClient} />}>
         <Route path={home.path} element={<HomePage />} />
         <Route path={levels.path} element={<LevelSelectPage />} />
         <Route path={game.path} element={<GamePage />} />
