@@ -14,6 +14,7 @@ import { getRouteById } from '@/routes/routeConfig'
 import { useProgressStore } from '@/stores/progressStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { playSfx } from '@/lib/audio'
+import { formatLevelId } from '@/lib/appMeta'
 
 export function GamePage() {
   const route = getRouteById('game')
@@ -187,7 +188,7 @@ export function GamePage() {
                 </span>
                 {cd > 0 && (
                   <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-xs font-bold text-white">
-                    {cd.toFixed(1)}s
+                    {cd.toFixed(1)} 秒
                   </span>
                 )}
               </button>
@@ -197,7 +198,7 @@ export function GamePage() {
 
         <div className="flex flex-col justify-center gap-1">
           <div className="text-[11px] font-bold text-[#1b5e20]">
-            <span data-testid="game-level-id">{levelId}</span>
+            <span data-testid="game-level-id">{formatLevelId(levelId)}</span>
             {' · '}
             {level.name} · 波次 {snap.waveIndex}/{snap.totalWaves}
           </div>
@@ -227,7 +228,7 @@ export function GamePage() {
                 }`}
                 onClick={() => setGameSpeed(r)}
               >
-                ×{r}
+                {r} 倍
               </Button>
             ))}
           </div>
@@ -303,7 +304,7 @@ export function GamePage() {
           </DialogHeader>
           <p className="text-sm text-emerald-100">
             {snap.status === 'won'
-              ? `星级 ${calcStars(snap, snap.sun)} · 剩余阳光 ${snap.sun}`
+              ? `获得 ${calcStars(snap, snap.sun)} 星 · 剩余阳光 ${snap.sun}`
               : snap.loseReason}
           </p>
           <div className="mt-4 flex gap-2">

@@ -5,6 +5,7 @@ import { getPlant } from '@/data/plants'
 import { gamePath, getRouteById } from '@/routes/routeConfig'
 import { useProgressStore } from '@/stores/progressStore'
 import { CardPicker } from '@/components/game/CardPicker'
+import { formatLevelId } from '@/lib/appMeta'
 
 export function LevelSelectPage() {
   const route = getRouteById('levels')
@@ -72,7 +73,7 @@ export function LevelSelectPage() {
                 {idx + 1}
               </div>
               <div className="mt-1 text-base font-black text-[#3e2723]">
-                {lv.id} {lv.name}
+                {formatLevelId(lv.id)} {lv.name}
               </div>
               <div className="text-xs text-[#6d4c41]">{lv.description}</div>
               <div className="mt-1 text-sm text-[#f9a825]">

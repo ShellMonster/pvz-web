@@ -7,8 +7,8 @@ describe('appMeta', () => {
     expect(DESIGN_ASPECT).toBe('16:9')
   })
 
-  it('formatShellLabel combines title with design aspect', () => {
-    expect(formatShellLabel()).toBe('植物大战僵尸 · 16:9')
-    expect(formatShellLabel('测试')).toBe('测试 · 16:9')
+  it('formatShellLabel shows Chinese subtitle for users', () => {
+    expect(formatShellLabel()).toBe('植物大战僵尸 · 横屏版')
+    expect(formatShellLabel('测试')).toBe('测试 · 横屏版')
   })
 })

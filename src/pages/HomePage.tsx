@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { APP_TAGLINE, APP_TITLE } from '@/lib/appMeta'
+import { APP_TAGLINE, APP_TITLE, formatLevelId } from '@/lib/appMeta'
 import { gamePath, getRouteById } from '@/routes/routeConfig'
 import { useProgressStore } from '@/stores/progressStore'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -43,7 +43,8 @@ export function HomePage() {
         </h2>
         <p className="text-center text-sm font-semibold text-[#5d4037]">{APP_TAGLINE}</p>
         <p className="text-xs text-[#6d4c41]">
-          进度：已解锁至 <span className="font-bold text-[#ef6c00]">{unlocked}</span>
+          进度：已解锁至{' '}
+          <span className="font-bold text-[#ef6c00]">{formatLevelId(unlocked)}</span>
         </p>
         <div className="mt-2 flex w-full flex-col gap-2">
           <Link
@@ -56,7 +57,7 @@ export function HomePage() {
             to={gamePath(unlocked)}
             className="rounded-xl border-b-4 border-[#2e7d32] bg-[#8bc34a] px-6 py-2.5 text-center text-base font-bold text-white shadow hover:brightness-105"
           >
-            继续 {unlocked}
+            继续 {formatLevelId(unlocked)}
           </Link>
           <div className="flex gap-2">
             <Link

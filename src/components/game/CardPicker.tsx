@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getPlant } from '@/data/plants'
+import { formatLevelId } from '@/lib/appMeta'
 
 export interface CardPickerProps {
   levelId: string
@@ -41,7 +42,7 @@ export function CardPicker({
       <DialogContent className="max-w-lg" data-testid="card-picker">
         <DialogHeader>
           <DialogTitle>
-            战前选卡 · {levelId}（{selected.length}/{slots}）
+            战前选卡 · {formatLevelId(levelId)}（已选 {selected.length}/{slots}）
           </DialogTitle>
         </DialogHeader>
         <div className="grid max-h-64 grid-cols-3 gap-2 overflow-auto">

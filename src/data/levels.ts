@@ -332,7 +332,7 @@ export const LEVELS: LevelDef[] = [
   },
   {
     id: '2-4',
-    name: 'Boss 降临',
+    name: '首领降临',
     chapter: 2,
     initialSun: 250,
     naturalSun: true,
@@ -341,7 +341,7 @@ export const LEVELS: LevelDef[] = [
     freePick: true,
     plantIds: [...fullPlants],
     mowers: true,
-    description: '巨人 Boss 综合考验',
+    description: '巨人首领综合考验',
     waves: [
       { at: 15, spawns: [{ zombie: 'football', row: 1 }, { zombie: 'cone', row: 3 }] },
       { at: 35, spawns: [{ zombie: 'dancer', row: 2 }] },

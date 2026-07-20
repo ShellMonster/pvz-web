@@ -47,7 +47,7 @@ describe('AppRoutes navigation', () => {
     const levelId = '1-1'
     renderAt(gamePath(levelId))
     expect(screen.getByTestId(getRouteById('game').testId)).toBeInTheDocument()
-    expect(screen.getByTestId('game-level-id')).toHaveTextContent(levelId)
+    expect(screen.getByTestId('game-level-id')).toHaveTextContent(`关卡 ${levelId}`)
   })
 
   it('redirects unknown paths to home', () => {

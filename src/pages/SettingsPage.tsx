@@ -35,7 +35,9 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <div className="mb-1 text-sm">BGM {Math.round(bgm * 100)}%</div>
+            <div className="mb-1 text-sm">
+              背景音乐 {Math.round(bgm * 100)}%
+            </div>
             <Slider
               data-testid="slider-bgm"
               min={0}
@@ -71,7 +73,8 @@ export function SettingsPage() {
               onCheckedChange={setReduceParticles}
             />
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-emerald-100/80">游戏速度</span>
             {([1, 1.5, 2] as const).map((r) => (
               <Button
                 key={r}
@@ -79,7 +82,7 @@ export function SettingsPage() {
                 variant={gameSpeed === r ? 'default' : 'outline'}
                 onClick={() => setGameSpeed(r)}
               >
-                ×{r}
+                {r} 倍速
               </Button>
             ))}
           </div>

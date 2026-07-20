@@ -118,7 +118,7 @@ export const ZOMBIES: Record<string, ZombieDef> = {
     chewDps: 300,
     threat: 5,
     behavior: 'gargantuar',
-    description: 'Boss：高血砸植物',
+    description: '首领：高血量，会砸毁植物',
     sprite: '/assets/zombies/gargantuar.png',
   },
 }

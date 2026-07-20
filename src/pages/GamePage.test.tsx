@@ -37,7 +37,7 @@ describe('GamePage canvas host mount contract', () => {
     renderGame('1-1')
     expect(screen.getByTestId('battle-canvas-host')).toBeInTheDocument()
     expect(screen.getByTestId('page-game')).toBeInTheDocument()
-    expect(screen.getByTestId('game-level-id')).toHaveTextContent('1-1')
+    expect(screen.getByTestId('game-level-id')).toHaveTextContent('关卡 1-1')
     expect(screen.getByTestId('sun-count')).toBeInTheDocument()
     expect(screen.queryByText('加载战场…')).not.toBeInTheDocument()
   })
