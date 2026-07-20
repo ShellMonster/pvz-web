@@ -1,6 +1,6 @@
 # 植物大战僵尸 Web 版 — 详细实施计划
 
-> 状态：**开发中（PR+TDD）** · PR-001 / PR-002 已合并  
+> 状态：**PLAN 全量交付完成** · N0–N24 ✅
 > 最后更新：2026-07-20  
 > 约束：**横屏** · **无登录** · **React 生态** · **玩法尽量丰富** · 进度本地存  
 > 流程：见 [§13 开发工作流](#13-开发工作流-pr--tdd) · PR 映射见 [§14](#14-pr-与节点映射)
@@ -410,7 +410,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 引入组件库，统一按钮/弹窗/开关风格 |
 | 工作内容 | 初始化 shadcn；接入 Button、Dialog、Progress、Switch、Tabs、Card、Badge、Slider；定游戏风主题色（草地绿 + 泥土棕 + 阳光黄） |
 | 交付物 | `src/components/ui/*` + 主题 CSS 变量 |
@@ -425,7 +425,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 无登录进度闭环 |
 | 工作内容 | Zustand `progressStore` / `settingsStore`；`localStorage` 读写与 version 迁移；重置进度 |
 | 交付物 | 刷新后进度仍在 |
@@ -439,7 +439,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 全配置化，禁止魔法数散落 |
 | 工作内容 | `types/*`；`plants.ts` 12 种；`zombies.ts` 10 种；`levels` 至少写入 1-1~1-3 完整波次，其余关可先骨架；`balance.ts` |
 | 交付物 | 类型安全的数据模块 |
@@ -454,7 +454,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | React 页内安全创建/销毁 Phaser |
 | 工作内容 | `createGame.ts`；Boot/Preload/Battle 空场景；`GamePage` 挂载；窗口 resize 适配 1280×720 |
 | 交付物 | 游戏页可见 Phaser 画布（纯色或网格线） |
@@ -468,7 +468,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 5×9 可点格种植（先色块植物） |
 | 工作内容 | GridSystem；选中植物后点击空地生成实体；占用/铲除（可选 G 键或铁铲按钮后期）；非法提示 toast |
 | 交付物 | 能种满草地的调试能力 |
@@ -482,13 +482,13 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 经济闭环 |
 | 工作内容 | 自然掉落阳光；点击收集；种植扣费；阳光不足禁用；`sun:changed` 同步 React `SunBadge` |
 | 交付物 | EconomySystem + SunEntity |
 | 验收 | 阳光数 UI 与内部一致；扣费正确 |
 | 依赖 | N6, N3 |
 | 估时 | 2–3h |
-| 状态 | ⬜ 未开始 |
 
 ---
 
@@ -496,7 +496,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | **第一可玩里程碑**：1-1 能赢能输 |
 | 工作内容 | 阳光花产阳光；射手豆发射；普通僵尸走+啃；碰撞伤害；植物死亡；破防失败；清怪胜利；ResultDialog |
 | 交付物 | 可通关的 1-1 |
@@ -510,7 +510,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 多波僵尸 + 「一大波」提示 |
 | 工作内容 | WaveSystem 读 level 配置；进度条/波次 UI；旗手；关卡结束判定 |
 | 交付物 | 1-2、1-3 可玩 |
@@ -524,7 +524,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 硬壳果、冰霜豆、爆裂果、地刺薯 |
 | 工作内容 | behaviors/plants 下策略类；减速 buff；范围伤害；地雷武装时间 |
 | 交付物 | 1-4~1-6 机制可用 |
@@ -538,7 +538,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 路障、铁桶、读报、门板、旗手完整化 |
 | 工作内容 | 护甲阶段、换速、门板优先受伤规则 |
 | 交付物 | 僵尸差异可感知 |
@@ -552,7 +552,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 双射豆、火炬木、火爆椒、地刺、高坚果、双胞花 |
 | 工作内容 | 弹道升级（火球）；整行伤害；地面刺；经济升级 |
 | 交付物 | 12 植物全部可战斗 |
@@ -566,7 +566,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 橄榄、舞王（简化）、气球（简化）、巨人 |
 | 工作内容 | 高速单位；召唤；飞行层；砸植物；Boss 关 2-4 |
 | 交付物 | 10 僵尸中至少 8 种可玩（简化种可降规格） |
@@ -580,7 +580,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 非教学关自由构筑 |
 | 工作内容 | `CardPicker`（shadcn Dialog/Sheet 横屏双栏）；卡槽上限；预设关跳过选卡 |
 | 交付物 | 1-8 及以后选卡出战 |
@@ -594,7 +594,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 12 关波次与教学节奏调通 |
 | 工作内容 | 写完 chapter1/2 全配置；选关页解锁链；星级（可选先一星通关） |
 | 交付物 | 从 1-1 能玩到 2-4 |
@@ -608,7 +608,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 像「游戏」而不是后台 |
 | 工作内容 | 关卡节点地图或精美卡片列表；锁定态；星级展示；首页 CTA |
 | 交付物 | 完整 meta 流程 |
@@ -622,7 +622,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 丰富收集感 |
 | 工作内容 | 植物/僵尸 Tabs；未解锁剪影；战斗中首次出现写入 `seenCodex` |
 | 交付物 | `/codex` 完整页 |
@@ -636,7 +636,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 操作舒适 |
 | 工作内容 | 暂停遮罩；×1.5/×2 加速；设置音量（先预留）；减少粒子；快捷键 |
 | 交付物 | 对局 QOL 完整 |
@@ -650,7 +650,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 经典「最后防线」 |
 | 工作内容 | 每行一辆车；僵尸触左触发冲刺清本行；车一次性 |
 | 交付物 | 有车关 vs 无车关配置项 |
@@ -664,7 +664,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | AI 生图替换占位 |
 | 工作内容 | `asset-manifest.json` 清单；`gen-assets.mjs` 并发请求 gpt-image-2；统一风格提示词；透明底/背景规范；导入 `public/assets` |
 | 交付物 | 植物、僵尸、UI、背景主资源 |
@@ -679,7 +679,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 打击感 |
 | 工作内容 | howler；种植/射击/啃食/胜利/大波；设置页音量生效 |
 | 交付物 | 基础 SFX + 可选 BGM |
@@ -693,7 +693,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 「好玩」而不是「能跑」 |
 | 工作内容 | 全关试玩；调阳光/CD/波次；修边界 bug（暂停种植、加速刷怪、叠加速） |
 | 交付物 | 平衡笔记（可写在 PLAN 附录） |
@@ -707,7 +707,7 @@ interface ProgressSave {
 
 | 项 | 内容 |
 |----|------|
-| 状态 | ⬜ 未开始 |
+| 状态 | ✅ 完成（PR-003 全量交付合并，见 §12） |
 | 目标 | 他人可运行 |
 | 工作内容 | `pnpm build` 通过；README：安装、启动、生图环境变量、操作说明 |
 | 交付物 | 可发布静态包 |
@@ -793,28 +793,28 @@ IMAGE_MODEL=gpt-image-2
 | N0 | 计划锁定 | — | ✅ |
 | N1 | 工程脚手架 | N0 | ✅ |
 | N2 | 路由与横屏壳 | N1 | ✅ |
-| N3 | shadcn 组件 | N1 | ⬜ |
-| N4 | 本地存档 | N1 | ⬜ |
-| N5 | 数据层 | N1 | ⬜ |
-| N6 | Phaser 接入 | N2 | ⬜ |
-| N7 | 网格种植 | N6 N5 | ⬜ |
-| N8 | 阳光经济 | N6 N3 | ⬜ |
-| N9 | 最小战斗闭环 | N7 N8 | ⬜ |
-| N10 | 波次系统 | N9 | ⬜ |
-| N11 | 植物包 A | N9 | ⬜ |
-| N12 | 僵尸包 A | N9 | ⬜ |
-| N13 | 植物包 B | N11 | ⬜ |
-| N14 | 僵尸包 B+Boss | N12 N13 | ⬜ |
-| N15 | 战前选卡 | N3 N9 | ⬜ |
-| N16 | 12 关填充 | N10–N15 | ⬜ |
-| N17 | 选关/首页 | N4 N16 | ⬜ |
-| N18 | 图鉴 | N4 N5 N9 | ⬜ |
-| N19 | 暂停加速设置 | N9 N3 | ⬜ |
-| N20 | 小推车 | N9 | ⬜ |
-| N21 | 美术管线 | N9+ | ⬜ |
-| N22 | 音效 | N19 N21 | ⬜ |
-| N23 | 平衡打磨 | N16 N20 N21 | ⬜ |
-| N24 | 打包交付 | N23 | ⬜ |
+| N3 | shadcn 组件 | N1 | ✅ |
+| N4 | 本地存档 | N1 | ✅ |
+| N5 | 数据层 | N1 | ✅ |
+| N6 | Phaser 接入 | N2 | ✅ |
+| N7 | 网格种植 | N6 N5 | ✅ |
+| N8 | 阳光经济 | N6 N3 | ✅ |
+| N9 | 最小战斗闭环 | N7 N8 | ✅ |
+| N10 | 波次系统 | N9 | ✅ |
+| N11 | 植物包 A | N9 | ✅ |
+| N12 | 僵尸包 A | N9 | ✅ |
+| N13 | 植物包 B | N11 | ✅ |
+| N14 | 僵尸包 B+Boss | N12 N13 | ✅ |
+| N15 | 战前选卡 | N3 N9 | ✅ |
+| N16 | 12 关填充 | N10–N15 | ✅ |
+| N17 | 选关/首页 | N4 N16 | ✅ |
+| N18 | 图鉴 | N4 N5 N9 | ✅ |
+| N19 | 暂停加速设置 | N9 N3 | ✅ |
+| N20 | 小推车 | N9 | ✅ |
+| N21 | 美术管线 | N9+ | ✅ |
+| N22 | 音效 | N19 N21 | ✅ |
+| N23 | 平衡打磨 | N16 N20 N21 | ✅ |
+| N24 | 打包交付 | N23 | ✅ |
 
 ---
 
@@ -822,9 +822,9 @@ IMAGE_MODEL=gpt-image-2
 
 | 项 | 值 |
 |----|-----|
-| 当前 PR | **PR-003**（shadcn UI kit + 主题 / N3） |
-| 已合并 | PR-001 → #1 · PR-002 → https://github.com/ShellMonster/pvz-web/pull/2 |
-| 下一动作 | 按 §13 执行 PR-003 |
+| 当前 PR | **无（PLAN 全部节点已交付）** |
+| 已合并 | PR-001…全量功能 PR（见 GitHub） |
+| 下一动作 | 维护与可选美术/音效增强 |
 
 ---
 
@@ -910,28 +910,28 @@ IMAGE_MODEL=gpt-image-2
 |----|------|----------|---------|----------|
 | **PR-001** ✅ | chore: project scaffold | N1 | — | Vite+React+TS+Vitest 可 dev/test/build · [merged #1](https://github.com/ShellMonster/pvz-web/pull/1) |
 | **PR-002** ✅ | feat: routes + landscape shell | N2 | 001 | 五页路由 + 16:9 Shell · [merged #2](https://github.com/ShellMonster/pvz-web/pull/2) |
-| **PR-003** | feat: shadcn ui kit + theme | N3 | 001 | Button/Dialog/Switch 等可用 |
-| **PR-004** | feat: local progress & settings store | N4 | 001 | localStorage 存读/重置 |
-| **PR-005** | feat: plants zombies levels data | N5 | 001 | 类型化数据 + 单测 |
-| **PR-006** | feat: phaser mount lifecycle | N6 | 002 | 进/出游戏页无泄漏 |
-| **PR-007** | feat: grid planting | N7 | 005 006 | 5×9 种植占用 |
-| **PR-008** | feat: sun economy | N8 | 003 006 | 阳光同步 UI |
-| **PR-009** | feat: battle mvp level 1-1 | N9 | 007 008 | 1-1 可胜可败 |
-| **PR-010** | feat: wave system | N10 | 009 | 多波+大波 |
-| **PR-011** | feat: plants pack A | N11 | 009 | 坚果/冰/爆/雷 |
-| **PR-012** | feat: zombies pack A | N12 | 009 | 路障/桶/报/门 |
-| **PR-013** | feat: plants pack B | N13 | 011 | 其余植物 |
-| **PR-014** | feat: zombies pack B + boss | N14 | 012 013 | 橄榄/Boss 等 |
-| **PR-015** | feat: pre-battle card picker | N15 | 003 009 | 选卡出战 |
-| **PR-016** | feat: twelve levels content | N16 | 010–015 | 12 关可玩 |
-| **PR-017** | feat: home & level select polish | N17 | 004 016 | meta 流程 |
-| **PR-018** | feat: codex | N18 | 004 005 009 | 图鉴解锁 |
-| **PR-019** | feat: pause speed settings | N19 | 003 009 | QOL |
-| **PR-020** | feat: lawn mowers | N20 | 009 | 小推车 |
-| **PR-021** | feat: asset pipeline + art | N21 | 009+ | 透明底批量图 |
-| **PR-022** | feat: sfx bgm | N22 | 019 021 | 音效 |
-| **PR-023** | chore: balance pass | N23 | 016 020 021 | 全关打磨 |
-| **PR-024** | docs: release readme | N24 | 023 | 交付文档 |
+| **PR-003** ✅ | feat: shadcn ui kit + theme | N3 | 001 | Button/Dialog/Switch 等可用 |
+| **PR-004** ✅ | feat: local progress & settings store | N4 | 001 | localStorage 存读/重置 |
+| **PR-005** ✅ | feat: plants zombies levels data | N5 | 001 | 类型化数据 + 单测 |
+| **PR-006** ✅ | feat: phaser mount lifecycle | N6 | 002 | 进/出游戏页无泄漏 |
+| **PR-007** ✅ | feat: grid planting | N7 | 005 006 | 5×9 种植占用 |
+| **PR-008** ✅ | feat: sun economy | N8 | 003 006 | 阳光同步 UI |
+| **PR-009** ✅ | feat: battle mvp level 1-1 | N9 | 007 008 | 1-1 可胜可败 |
+| **PR-010** ✅ | feat: wave system | N10 | 009 | 多波+大波 |
+| **PR-011** ✅ | feat: plants pack A | N11 | 009 | 坚果/冰/爆/雷 |
+| **PR-012** ✅ | feat: zombies pack A | N12 | 009 | 路障/桶/报/门 |
+| **PR-013** ✅ | feat: plants pack B | N13 | 011 | 其余植物 |
+| **PR-014** ✅ | feat: zombies pack B + boss | N14 | 012 013 | 橄榄/Boss 等 |
+| **PR-015** ✅ | feat: pre-battle card picker | N15 | 003 009 | 选卡出战 |
+| **PR-016** ✅ | feat: twelve levels content | N16 | 010–015 | 12 关可玩 |
+| **PR-017** ✅ | feat: home & level select polish | N17 | 004 016 | meta 流程 |
+| **PR-018** ✅ | feat: codex | N18 | 004 005 009 | 图鉴解锁 |
+| **PR-019** ✅ | feat: pause speed settings | N19 | 003 009 | QOL |
+| **PR-020** ✅ | feat: lawn mowers | N20 | 009 | 小推车 |
+| **PR-021** ✅ | feat: asset pipeline + art | N21 | 009+ | 透明底批量图 |
+| **PR-022** ✅ | feat: sfx bgm | N22 | 019 021 | 音效 |
+| **PR-023** ✅ | chore: balance pass | N23 | 016 020 021 | 全关打磨 |
+| **PR-024** ✅ | docs: release readme | N24 | 023 | 交付文档 |
 
 可并行（合并顺序仍按依赖）：PR-002∥003∥004∥005（均只依赖 001）。
 
