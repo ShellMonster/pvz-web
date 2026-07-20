@@ -1,8 +1,9 @@
 # 植物大战僵尸 Web 版 — 详细实施计划
 
-> 状态：规划完成，待开工  
+> 状态：**开发中（PR+TDD）**  
 > 最后更新：2026-07-20  
-> 约束：**横屏** · **无登录** · **React 生态** · **玩法尽量丰富** · 进度本地存
+> 约束：**横屏** · **无登录** · **React 生态** · **玩法尽量丰富** · 进度本地存  
+> 流程：见 [§13 开发工作流](#13-开发工作流-pr--tdd) · PR 映射见 [§14](#14-pr-与节点映射)
 
 ---
 
@@ -80,7 +81,17 @@
 | Model | `gpt-image-2` |
 | 调用方式 | 项目内 `scripts/gen-assets.mjs`，**可并发** |
 | 密钥 | 环境变量 `IMAGE_API_KEY` 等，**禁止提交仓库** |
-| 策略 | 玩法可用色块占位 → 锁画风样板 → 批量换皮 |
+| 策略 | 需要图时自动生成；**无背景/透明底**便于抠图使用 |
+
+#### 1.4.1 生图强制规范（抠图友好）
+
+1. **角色/道具/特效/UI 图标**：必须 **透明背景（alpha）** 或纯色可抠底（优先透明 PNG）。  
+2. 提示词必须包含类似：  
+   `isolated game sprite, full body or clear subject, **transparent background**, no ground shadow plate, no scenery, centered, clean edges, PNG alpha`  
+3. **仅背景图**（草地、菜单背景）允许不透明全幅。  
+4. 缺图：开发中发现 `public/assets/**` 缺失 → 立即用脚本并发生成，不阻塞关卡逻辑（可先占位再换）。  
+5. 风格锚点（全项目统一）：  
+   `Plants vs Zombies inspired original fan art, cute cartoon, clean thick outlines, bright colors, consistent proportions, game asset`
 
 ---
 
@@ -807,12 +818,131 @@ IMAGE_MODEL=gpt-image-2
 
 ---
 
-## 12. 下一步
+## 12. 进度快照
 
-你确认本计划后，直接说：
+| 项 | 值 |
+|----|-----|
+| 当前 PR | PR-001（脚手架） |
+| 已合并 | 无（仅 PLAN 在 main） |
+| 下一动作 | 按 §13 执行 PR-001 |
 
-- **`开始 N1`** — 只搭工程  
-- **`做到 M3`** — 一口气做到 1-1 可玩  
-- **`按顺序继续`** — 从第一个 ⬜ 节点推进  
+---
 
-即可进入实施（改代码阶段）。
+## 13. 开发工作流（PR + TDD）
+
+每个功能切片严格走下面闭环（**一个 PR 只做映射表中的节点范围**）：
+
+```text
+① Planner 明确本 PR 范围/验收/测试清单
+        ↓
+② TDD：先写失败测试 → 实现 → 测试变绿
+        ↓
+③ 推送分支 → 开 GitHub PR
+        ↓
+④ 并行子 Agent 审查（最多 8 个）
+   · planner 对照 PLAN 查范围漂移
+   · implementer 自检（可读性/结构）
+   · verifier 跑测 + build + 关键路径
+   · reviewer 常规 Code Review
+   · adversarial 对抗性审查（边界/安全/泄漏/回归）
+   ·（可选）game-design 玩法一致性 / a11y / perf
+        ↓
+⑤ 修复 🔴必须 / 🟡应该 问题 → 复验
+        ↓
+⑥ 合并 PR → 更新本 PLAN 节点打钩 → 进入下一 PR
+```
+
+### 13.1 分支与提交
+
+- 分支：`feature/pr-XXX-<short-name>`（例：`feature/pr-001-scaffold`）
+- Commit：Conventional Commits，英文（`feat:` / `test:` / `fix:` / `docs:`）
+- 合并：优先 **Squash and merge**
+- 合并后删除 feature 分支
+
+### 13.2 TDD 约定
+
+| 层 | 工具 | 测什么 |
+|----|------|--------|
+| 单元 | Vitest | 数据配置、store、纯函数、伤害/波次逻辑 |
+| 组件 | Vitest + Testing Library | 页面壳、选卡、弹窗、路由入口 |
+| 游戏逻辑 | Vitest（尽量无 Phaser 头） | Grid/Economy/Wave/Combat 纯逻辑优先可测 |
+| 冒烟 | `pnpm build` +（后期）e2e 可选 | 打包不过不得合并 |
+
+规则：
+
+1. **先测后码**：本 PR 新增行为必须先有失败测试。  
+2. 纯逻辑与 Phaser 解耦，避免「只能手动点才知道坏了」。  
+3. PR 描述必须写：**测试命令** + **结果**。
+
+### 13.3 子 Agent 并行审查（合并前必做）
+
+| Agent | 职责 | 产出 |
+|-------|------|------|
+| planner | 是否超出 PR 范围、是否完成验收 | 范围报告 |
+| implementer | 结构、命名、重复、是否可扩展 | 自检报告 |
+| verifier | `pnpm test` / `pnpm build` / 关键脚本 | 通过/失败日志 |
+| reviewer | 缺陷、API 误用、类型安全 | Issue 列表 |
+| adversarial | 恶意输入、存档损坏、内存泄漏、竞态、加速/暂停边界 | 对抗 Issue |
+| （可选）asset | 资源路径、透明底规范、裂图 | 资源报告 |
+
+严重度处理：
+
+- 🔴 bug / 安全 / 测不过 → **必须修完再合**  
+- 🟡 设计债 / 可维护性 → 本 PR 能修则修，否则开 follow-up 记入 PLAN  
+- 🟢 nit → 不阻断
+
+### 13.4 生图在流程中的位置
+
+- 本 PR 若引入新实体/UI 且需要正式图 → 在实现阶段调用 `scripts/gen-assets.mjs`（透明底）。  
+- 生图失败可用色块占位，但须在 PR 描述标注 `assets:placeholder`，并在 N21 清债。
+
+### 13.5 PLAN 打钩规则
+
+- 节点完成且 **对应 PR 已合并 main** → 状态改为 ✅  
+- §11 速查表与 §5 节点状态同步更新  
+- §12 进度快照更新「当前 PR / 已合并」
+
+---
+
+## 14. PR 与节点映射
+
+| PR | 标题 | 覆盖节点 | 依赖 PR | 验收摘要 |
+|----|------|----------|---------|----------|
+| **PR-001** | chore: project scaffold | N1 | — | Vite+React+TS+Vitest 可 dev/test/build |
+| **PR-002** | feat: routes + landscape shell | N2 | 001 | 五页路由 + 16:9 Shell |
+| **PR-003** | feat: shadcn ui kit + theme | N3 | 001 | Button/Dialog/Switch 等可用 |
+| **PR-004** | feat: local progress & settings store | N4 | 001 | localStorage 存读/重置 |
+| **PR-005** | feat: plants zombies levels data | N5 | 001 | 类型化数据 + 单测 |
+| **PR-006** | feat: phaser mount lifecycle | N6 | 002 | 进/出游戏页无泄漏 |
+| **PR-007** | feat: grid planting | N7 | 005 006 | 5×9 种植占用 |
+| **PR-008** | feat: sun economy | N8 | 003 006 | 阳光同步 UI |
+| **PR-009** | feat: battle mvp level 1-1 | N9 | 007 008 | 1-1 可胜可败 |
+| **PR-010** | feat: wave system | N10 | 009 | 多波+大波 |
+| **PR-011** | feat: plants pack A | N11 | 009 | 坚果/冰/爆/雷 |
+| **PR-012** | feat: zombies pack A | N12 | 009 | 路障/桶/报/门 |
+| **PR-013** | feat: plants pack B | N13 | 011 | 其余植物 |
+| **PR-014** | feat: zombies pack B + boss | N14 | 012 013 | 橄榄/Boss 等 |
+| **PR-015** | feat: pre-battle card picker | N15 | 003 009 | 选卡出战 |
+| **PR-016** | feat: twelve levels content | N16 | 010–015 | 12 关可玩 |
+| **PR-017** | feat: home & level select polish | N17 | 004 016 | meta 流程 |
+| **PR-018** | feat: codex | N18 | 004 005 009 | 图鉴解锁 |
+| **PR-019** | feat: pause speed settings | N19 | 003 009 | QOL |
+| **PR-020** | feat: lawn mowers | N20 | 009 | 小推车 |
+| **PR-021** | feat: asset pipeline + art | N21 | 009+ | 透明底批量图 |
+| **PR-022** | feat: sfx bgm | N22 | 019 021 | 音效 |
+| **PR-023** | chore: balance pass | N23 | 016 020 021 | 全关打磨 |
+| **PR-024** | docs: release readme | N24 | 023 | 交付文档 |
+
+可并行（合并顺序仍按依赖）：PR-002∥003∥004∥005（均只依赖 001）。
+
+---
+
+## 15. 下一步（执行指令）
+
+默认自动循环：
+
+1. 取 §14 中 **第一个未合并** 的 PR  
+2. 走 §13 全流程  
+3. 合并后更新打钩，继续下一个  
+
+人工插话示例：`只做 PR-001` / `停在 M3` / `跳过音效 PR-022`。
