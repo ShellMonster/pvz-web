@@ -2,33 +2,55 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { formatShellLabel } from '@/lib/appMeta'
 import {
-  computeShellBox,
   LANDSCAPE_ASPECT_CSS,
   LANDSCAPE_ASPECT_RATIO,
+  measureShellFrame,
+  shellBoxFromPaddedClient,
+  type PaddingBox,
+  type Size,
 } from '@/lib/landscape'
 import { NAV_ROUTES } from '@/routes/routeConfig'
 
-export type ShellFrame = { width: number; height: number }
+export type ShellFrame = Size
 
-export interface LandscapeShellProps {
-  /**
-   * Optional fixed frame for tests. When omitted, the shell measures its
-   * outer container and letterboxes via `computeShellBox`.
-   */
-  frame?: ShellFrame
+/**
+ * Test hook: inject **raw outer client metrics** (not a pre-fitted box).
+ * Production measures the DOM via `measureShellFrame`.
+ */
+export type SimulateClient = {
+  width: number
+  height: number
+  padding: PaddingBox
 }
 
-export function LandscapeShell({ frame: frameProp }: LandscapeShellProps = {}) {
+export interface LandscapeShellProps {
+  /** @internal test-only: drive measure path without ResizeObserver/DOM layout */
+  simulateClient?: SimulateClient
+}
+
+export function LandscapeShell({
+  simulateClient,
+}: LandscapeShellProps = {}) {
   const outerRef = useRef<HTMLDivElement>(null)
   const [measured, setMeasured] = useState<ShellFrame>({ width: 0, height: 0 })
 
   useLayoutEffect(() => {
-    if (frameProp) return
+    if (simulateClient) {
+      setMeasured(
+        shellBoxFromPaddedClient(
+          simulateClient.width,
+          simulateClient.height,
+          simulateClient.padding,
+        ),
+      )
+      return
+    }
+
     const node = outerRef.current
     if (!node) return
 
     const update = () => {
-      setMeasured(computeShellBox(node.clientWidth, node.clientHeight))
+      setMeasured(measureShellFrame(node))
     }
 
     update()
@@ -37,33 +59,40 @@ export function LandscapeShell({ frame: frameProp }: LandscapeShellProps = {}) {
       return
     }
 
+    // contentBoxSize / contentRect exclude padding — still re-read via
+    // measureShellFrame so client+padding math stays the single source of truth.
     const ro = new ResizeObserver(() => update())
     ro.observe(node)
     return () => ro.disconnect()
-  }, [frameProp])
+  }, [simulateClient])
 
-  const frame = frameProp ?? measured
+  const frame = measured
   const hasFrame = frame.width > 0 && frame.height > 0
 
   return (
     <div
       ref={outerRef}
-      className="flex h-full min-h-full w-full items-center justify-center bg-black p-3 sm:p-4"
+      className="box-border flex h-full min-h-full w-full items-center justify-center bg-black p-3 sm:p-4"
       data-testid="landscape-outer"
     >
       <div
-        className="flex max-h-full max-w-full flex-col overflow-hidden rounded-xl border border-emerald-800/70 bg-gradient-to-b from-emerald-950 to-lime-950 shadow-2xl"
+        className="flex flex-col overflow-hidden rounded-xl border border-emerald-800/70 bg-gradient-to-b from-emerald-950 to-lime-950 shadow-2xl"
         style={
           hasFrame
             ? {
                 width: frame.width,
                 height: frame.height,
+                // Explicit width+height already encode 16:9; keep aspect-ratio
+                // as a CSS hint for layout engines without max-* clamping.
                 aspectRatio: LANDSCAPE_ASPECT_CSS,
+                maxWidth: 'none',
+                maxHeight: 'none',
               }
             : {
-                width: 'min(100%, calc((100vh - 2rem) * 16 / 9))',
-                maxHeight: 'calc(100vh - 2rem)',
+                width: 'min(100%, calc((100dvh - 2rem) * 16 / 9))',
+                height: 'auto',
                 aspectRatio: LANDSCAPE_ASPECT_CSS,
+                maxHeight: 'calc(100dvh - 2rem)',
               }
         }
         data-testid="landscape-shell"

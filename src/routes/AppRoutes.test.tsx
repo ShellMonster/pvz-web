@@ -4,21 +4,20 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { formatShellLabel } from '@/lib/appMeta'
 import {
-  computeShellBox,
+  contentBoxFromClient,
   isLandscapeAspect,
   LANDSCAPE_ASPECT_CSS,
   LANDSCAPE_ASPECT_RATIO,
+  shellBoxFromPaddedClient,
 } from '@/lib/landscape'
 import { AppRoutes } from '@/routes/AppRoutes'
 import { APP_ROUTES, gamePath, getRouteById } from '@/routes/routeConfig'
+import type { SimulateClient } from '@/components/layout/LandscapeShell'
 
-function renderAt(
-  path: string,
-  options?: { shellFrame?: { width: number; height: number } },
-) {
+function renderAt(path: string, simulateClient?: SimulateClient) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppRoutes shellFrame={options?.shellFrame} />
+      <AppRoutes simulateClient={simulateClient} />
     </MemoryRouter>,
   )
 }
@@ -76,25 +75,45 @@ describe('AppRoutes navigation', () => {
   })
 })
 
-describe('LandscapeShell letterbox contract', () => {
-  it('applies computeShellBox dimensions for a short-wide container', () => {
-    // Short wide viewport: content must not use full width (pillarbox).
-    const container = { width: 1600, height: 500 }
-    const expected = computeShellBox(container.width, container.height)
+describe('LandscapeShell letterbox via real measure path', () => {
+  it('fits short-wide padded outer without distorting 16:9', () => {
+    // Inject raw client metrics + padding (NOT a pre-fitted box).
+    // Outer 1600×500, p-4 → content 1568×468; shell must fit that content box.
+    const simulateClient: SimulateClient = {
+      width: 1600,
+      height: 500,
+      padding: { top: 16, right: 16, bottom: 16, left: 16 },
+    }
+    const content = contentBoxFromClient(
+      simulateClient.width,
+      simulateClient.height,
+      simulateClient.padding,
+    )
+    const expected = shellBoxFromPaddedClient(
+      simulateClient.width,
+      simulateClient.height,
+      simulateClient.padding,
+    )
 
-    renderAt('/', { shellFrame: expected })
+    renderAt('/', simulateClient)
 
     const shell = screen.getByTestId('landscape-shell')
-    expect(shell).toHaveAttribute('data-shell-width', String(expected.width))
-    expect(shell).toHaveAttribute('data-shell-height', String(expected.height))
+    const w = Number(shell.getAttribute('data-shell-width'))
+    const h = Number(shell.getAttribute('data-shell-height'))
+
+    expect(w).toBe(expected.width)
+    expect(h).toBe(expected.height)
+    expect(w).toBeLessThanOrEqual(content.width)
+    expect(h).toBeLessThanOrEqual(content.height)
+    expect(isLandscapeAspect(w, h)).toBe(true)
     expect(shell).toHaveStyle({
       width: `${expected.width}px`,
       height: `${expected.height}px`,
       aspectRatio: LANDSCAPE_ASPECT_CSS,
     })
-    expect(isLandscapeAspect(expected.width, expected.height)).toBe(true)
-    expect(expected.width).toBeLessThan(container.width)
-    expect(expected.height).toBe(container.height)
+    // Prove we did not size against the padding-box height (500).
+    expect(h).toBeLessThan(500)
+    expect(h).toBe(content.height)
     expect(shell).toHaveAttribute(
       'data-aspect-ratio',
       String(LANDSCAPE_ASPECT_RATIO),
@@ -104,13 +123,33 @@ describe('LandscapeShell letterbox contract', () => {
     ).toBeInTheDocument()
   })
 
-  it('letterboxes tall containers (limit by width)', () => {
-    const expected = computeShellBox(900, 1400)
-    renderAt('/levels', { shellFrame: expected })
+  it('letterboxes tall padded containers (limit by content width)', () => {
+    const simulateClient: SimulateClient = {
+      width: 900,
+      height: 1400,
+      padding: { top: 12, right: 12, bottom: 12, left: 12 },
+    }
+    const content = contentBoxFromClient(
+      simulateClient.width,
+      simulateClient.height,
+      simulateClient.padding,
+    )
+    const expected = shellBoxFromPaddedClient(
+      simulateClient.width,
+      simulateClient.height,
+      simulateClient.padding,
+    )
+
+    renderAt('/levels', simulateClient)
     const shell = screen.getByTestId('landscape-shell')
-    expect(Number(shell.getAttribute('data-shell-width'))).toBe(expected.width)
-    expect(Number(shell.getAttribute('data-shell-height'))).toBe(expected.height)
-    expect(isLandscapeAspect(expected.width, expected.height)).toBe(true)
-    expect(expected.height).toBeLessThan(1400)
+    const w = Number(shell.getAttribute('data-shell-width'))
+    const h = Number(shell.getAttribute('data-shell-height'))
+
+    expect(w).toBe(expected.width)
+    expect(h).toBe(expected.height)
+    expect(w).toBeLessThanOrEqual(content.width)
+    expect(h).toBeLessThanOrEqual(content.height)
+    expect(isLandscapeAspect(w, h)).toBe(true)
+    expect(h).toBeLessThan(content.height)
   })
 })
