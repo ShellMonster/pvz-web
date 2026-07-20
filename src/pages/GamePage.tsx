@@ -21,9 +21,11 @@ export function GamePage() {
   const { levelId = '1-1' } = useParams<{ levelId: string }>()
   const [params] = useSearchParams()
   const navigate = useNavigate()
+  const hydrateProgress = useProgressStore((s) => s.hydrate)
   const recordWin = useProgressStore((s) => s.recordWin)
   const unlockSeenPlant = useProgressStore((s) => s.unlockSeenPlant)
   const unlockSeenZombie = useProgressStore((s) => s.unlockSeenZombie)
+  const hydrateSettings = useSettingsStore((s) => s.hydrate)
   const gameSpeed = useSettingsStore((s) => s.gameSpeed)
   const setGameSpeed = useSettingsStore((s) => s.setGameSpeed)
 
@@ -40,6 +42,13 @@ export function GamePage() {
   const [snap, setSnap] = useState<BattleSnapshot | null>(null)
   const [paused, setPaused] = useState(false)
   const settled = useRef(false)
+  // Read speed only at mount; mid-fight changes go through setSpeed effect.
+  const initialSpeedRef = useRef(gameSpeed)
+
+  useEffect(() => {
+    hydrateProgress()
+    hydrateSettings()
+  }, [hydrateProgress, hydrateSettings])
 
   useEffect(() => {
     for (const id of loadout) unlockSeenPlant(id)
@@ -47,7 +56,7 @@ export function GamePage() {
 
   useEffect(() => {
     const engine = new BattleEngine({ level, loadout })
-    engine.setSpeed(gameSpeed)
+    engine.setSpeed(initialSpeedRef.current)
     engineRef.current = engine
     setSnap(engine.snapshot())
     settled.current = false
@@ -85,7 +94,8 @@ export function GamePage() {
       if (game) game.destroy(true)
       engineRef.current = null
     }
-  }, [level, loadout, recordWin, unlockSeenZombie, gameSpeed])
+    // Intentionally omit gameSpeed: mid-fight speed must not remount Phaser.
+  }, [level, loadout, recordWin, unlockSeenZombie])
 
   useEffect(() => {
     engineRef.current?.setSpeed(gameSpeed)
