@@ -46,4 +46,18 @@ describe('progress storage', () => {
     expect(s.getItem(PROGRESS_KEY)).toBeNull()
     expect(loadProgress(s).unlockedLevelId).toBe('1-1')
   })
+
+  it('applyWinProgress preserves earlier unlocks when base is stored progress', () => {
+    let progress = defaultProgress()
+    progress = applyWinProgress(progress, '1-1', 2)
+    progress = applyWinProgress(progress, '1-2', 1)
+    expect(progress.unlockedLevelId).toBe('1-3')
+    expect(progress.stars['1-1']).toBe(2)
+    // Winning 1-1 again must not wipe 1-2 stars or unlock
+    const again = applyWinProgress(progress, '1-1', 1)
+    expect(again.unlockedLevelId).toBe('1-3')
+    expect(again.stars['1-1']).toBe(2)
+    expect(again.stars['1-2']).toBe(1)
+  })
 })
+
