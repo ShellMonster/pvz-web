@@ -11,7 +11,7 @@ export const LANDSCAPE_ASPECT_CSS = '16 / 9'
 export function isLandscapeAspect(
   width: number,
   height: number,
-  epsilon = 0.01,
+  epsilon = 0.02,
 ): boolean {
   if (width <= 0 || height <= 0) return false
   return Math.abs(width / height - LANDSCAPE_ASPECT_RATIO) <= epsilon
@@ -30,15 +30,29 @@ export function fitLandscapeFrame(
   }
 
   const viewportRatio = viewportWidth / viewportHeight
+  let width: number
+  let height: number
+
   if (viewportRatio > LANDSCAPE_ASPECT_RATIO) {
     // Viewport wider than 16:9 → pillarbox (limit by height)
-    const height = viewportHeight
-    const width = height * LANDSCAPE_ASPECT_RATIO
-    return { width, height }
+    height = viewportHeight
+    width = height * LANDSCAPE_ASPECT_RATIO
+  } else {
+    // Viewport taller/narrower → letterbox (limit by width)
+    width = viewportWidth
+    height = width / LANDSCAPE_ASPECT_RATIO
   }
 
-  // Viewport taller/narrower → letterbox (limit by width)
-  const width = viewportWidth
-  const height = width / LANDSCAPE_ASPECT_RATIO
-  return { width, height }
+  return {
+    width: Math.round(width),
+    height: Math.round(height),
+  }
+}
+
+/** Alias used by the shell for container → content box. */
+export function computeShellBox(
+  containerWidth: number,
+  containerHeight: number,
+): { width: number; height: number } {
+  return fitLandscapeFrame(containerWidth, containerHeight)
 }

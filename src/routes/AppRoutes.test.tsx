@@ -3,14 +3,22 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { formatShellLabel } from '@/lib/appMeta'
-import { LANDSCAPE_ASPECT_CSS, LANDSCAPE_ASPECT_RATIO } from '@/lib/landscape'
+import {
+  computeShellBox,
+  isLandscapeAspect,
+  LANDSCAPE_ASPECT_CSS,
+  LANDSCAPE_ASPECT_RATIO,
+} from '@/lib/landscape'
 import { AppRoutes } from '@/routes/AppRoutes'
 import { APP_ROUTES, gamePath, getRouteById } from '@/routes/routeConfig'
 
-function renderAt(path: string) {
+function renderAt(
+  path: string,
+  options?: { shellFrame?: { width: number; height: number } },
+) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppRoutes />
+      <AppRoutes shellFrame={options?.shellFrame} />
     </MemoryRouter>,
   )
 }
@@ -43,6 +51,11 @@ describe('AppRoutes navigation', () => {
     expect(screen.getByTestId('game-level-id')).toHaveTextContent(levelId)
   })
 
+  it('redirects unknown paths to home', () => {
+    renderAt('/nope')
+    expect(screen.getByTestId('page-home')).toBeInTheDocument()
+  })
+
   it('navigates via shell nav links without losing the shell', async () => {
     const user = userEvent.setup()
     renderAt('/')
@@ -63,14 +76,41 @@ describe('AppRoutes navigation', () => {
   })
 })
 
-describe('LandscapeShell contract', () => {
-  it('applies 16:9 aspect ratio from landscape helpers', () => {
-    renderAt('/')
+describe('LandscapeShell letterbox contract', () => {
+  it('applies computeShellBox dimensions for a short-wide container', () => {
+    // Short wide viewport: content must not use full width (pillarbox).
+    const container = { width: 1600, height: 500 }
+    const expected = computeShellBox(container.width, container.height)
+
+    renderAt('/', { shellFrame: expected })
+
     const shell = screen.getByTestId('landscape-shell')
-    expect(shell).toHaveStyle({ aspectRatio: LANDSCAPE_ASPECT_CSS })
-    expect(shell).toHaveAttribute('data-aspect-ratio', String(LANDSCAPE_ASPECT_RATIO))
+    expect(shell).toHaveAttribute('data-shell-width', String(expected.width))
+    expect(shell).toHaveAttribute('data-shell-height', String(expected.height))
+    expect(shell).toHaveStyle({
+      width: `${expected.width}px`,
+      height: `${expected.height}px`,
+      aspectRatio: LANDSCAPE_ASPECT_CSS,
+    })
+    expect(isLandscapeAspect(expected.width, expected.height)).toBe(true)
+    expect(expected.width).toBeLessThan(container.width)
+    expect(expected.height).toBe(container.height)
+    expect(shell).toHaveAttribute(
+      'data-aspect-ratio',
+      String(LANDSCAPE_ASPECT_RATIO),
+    )
     expect(
       screen.getByRole('heading', { name: formatShellLabel() }),
     ).toBeInTheDocument()
+  })
+
+  it('letterboxes tall containers (limit by width)', () => {
+    const expected = computeShellBox(900, 1400)
+    renderAt('/levels', { shellFrame: expected })
+    const shell = screen.getByTestId('landscape-shell')
+    expect(Number(shell.getAttribute('data-shell-width'))).toBe(expected.width)
+    expect(Number(shell.getAttribute('data-shell-height'))).toBe(expected.height)
+    expect(isLandscapeAspect(expected.width, expected.height)).toBe(true)
+    expect(expected.height).toBeLessThan(1400)
   })
 })

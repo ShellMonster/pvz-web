@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  computeShellBox,
   fitLandscapeFrame,
   isLandscapeAspect,
   LANDSCAPE_ASPECT_CSS,
@@ -23,11 +24,20 @@ describe('landscape aspect contract', () => {
     const wide = fitLandscapeFrame(1920, 800)
     expect(isLandscapeAspect(wide.width, wide.height)).toBe(true)
     expect(wide.height).toBe(800)
-    expect(wide.width).toBeCloseTo(800 * (16 / 9), 5)
+    expect(wide.width).toBe(Math.round(800 * (16 / 9)))
 
     const tall = fitLandscapeFrame(800, 1200)
     expect(isLandscapeAspect(tall.width, tall.height)).toBe(true)
     expect(tall.width).toBe(800)
-    expect(tall.height).toBeCloseTo(800 / (16 / 9), 5)
+    expect(tall.height).toBe(Math.round(800 / (16 / 9)))
+  })
+
+  it('computeShellBox matches fitLandscapeFrame for short-wide viewports', () => {
+    // PLAN N2 case: short landscape window must shrink height-first (pillarbox)
+    const box = computeShellBox(1600, 500)
+    expect(box).toEqual(fitLandscapeFrame(1600, 500))
+    expect(isLandscapeAspect(box.width, box.height)).toBe(true)
+    expect(box.height).toBe(500)
+    expect(box.width).toBeLessThan(1600)
   })
 })
