@@ -1,9 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
 import { getLevel } from '@/data/levels'
 import { getPlant } from '@/data/plants'
 import {
@@ -11,6 +9,7 @@ import {
   calcStars,
   type BattleSnapshot,
 } from '@/game/logic/battleEngine'
+import { loadAssets, startCanvasBattle } from '@/game/canvasRenderer'
 import { getRouteById } from '@/routes/routeConfig'
 import { useProgressStore } from '@/stores/progressStore'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -37,8 +36,6 @@ export function GamePage() {
     return level.plantIds.slice(0, level.cardSlots)
   }, [level, params])
 
-  // Engine is ready on first render so UI + host can paint immediately.
-  // Mid-fight speed is applied via setSpeed — never remount on gameSpeed.
   const initialSpeedRef = useRef(gameSpeed)
   const engine = useMemo(() => {
     const e = new BattleEngine({ level, loadout })
@@ -49,11 +46,11 @@ export function GamePage() {
   const engineRef = useRef(engine)
   engineRef.current = engine
 
-  const hostRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [snap, setSnap] = useState<BattleSnapshot>(() => engine.snapshot())
   const [paused, setPaused] = useState(false)
   const settled = useRef(false)
-  const [phaserReady, setPhaserReady] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     hydrateProgress()
@@ -64,37 +61,34 @@ export function GamePage() {
     for (const id of loadout) unlockSeenPlant(id)
   }, [loadout, unlockSeenPlant])
 
-  // Sync UI when level/loadout creates a new engine.
   useEffect(() => {
     settled.current = false
     setPaused(false)
     setSnap(engine.snapshot())
-    setPhaserReady(false)
+    setReady(false)
   }, [engine])
 
-  // Mount Phaser only after the host div is in the DOM (useLayoutEffect).
+  // Canvas battle: empty canvas element only — no React children inside.
   useLayoutEffect(() => {
-    const host = hostRef.current
-    if (!host) return
-
+    const canvas = canvasRef.current
+    if (!canvas) return
     let destroyed = false
-    let game: { destroy: (removeCanvas: boolean) => void } | null = null
+    let handle: { destroy: () => void } | null = null
 
-    void import('@/game/createGame').then(({ createBattleGame }) => {
-      if (destroyed || !hostRef.current) return
-      // Clear any previous canvas children from a prior mount.
-      hostRef.current.replaceChildren()
-      game = createBattleGame({
-        parent: hostRef.current,
+    void (async () => {
+      const assets = await loadAssets()
+      if (destroyed || !canvasRef.current) return
+      handle = startCanvasBattle({
+        canvas: canvasRef.current,
         engine,
-        onSnapshot: () => {
+        assets,
+        onUi: () => {
           const s = engine.snapshot()
           setSnap({ ...s })
           for (const z of s.zombies) unlockSeenZombie(z.zombieId)
           if (!settled.current && s.status === 'won') {
             settled.current = true
-            const stars = calcStars(s, s.sun)
-            recordWin(level.id, stars)
+            recordWin(level.id, calcStars(s, s.sun))
             playSfx('win')
           }
           if (!settled.current && s.status === 'lost') {
@@ -103,13 +97,12 @@ export function GamePage() {
           }
         },
       })
-      if (!destroyed) setPhaserReady(true)
-    })
+      if (!destroyed) setReady(true)
+    })()
 
     return () => {
       destroyed = true
-      if (game) game.destroy(true)
-      if (hostRef.current) hostRef.current.replaceChildren()
+      handle?.destroy()
     }
   }, [engine, level.id, recordWin, unlockSeenZombie])
 
@@ -133,101 +126,155 @@ export function GamePage() {
       : Math.round((snap.waveIndex / snap.totalWaves) * 100)
 
   return (
-    <section data-testid={route.testId} className="flex h-full flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <Button variant="secondary" size="sm" onClick={() => setPaused(true)}>
-          暂停
-        </Button>
-        <span className="font-semibold text-lime-100">{level.name}</span>
-        <span data-testid="game-level-id" className="text-emerald-200">
-          {levelId}
-        </span>
-        <span
-          className="rounded bg-yellow-600/80 px-2 py-0.5 text-black"
+    <section
+      data-testid={route.testId}
+      className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-[#3d6b1f]"
+    >
+      {/* Top bar — PvZ seed bank style */}
+      <div className="z-10 flex shrink-0 items-stretch gap-2 border-b-4 border-[#5d4037] bg-gradient-to-b from-[#c8e6a0] to-[#8fbc5a] px-2 py-1 shadow-md">
+        {/* Sun bank */}
+        <div
+          className="flex min-w-[88px] flex-col items-center justify-center rounded-md border-2 border-[#b8860b] bg-gradient-to-b from-[#fff59d] to-[#fbc02d] px-2 py-1 shadow"
           data-testid="sun-count"
         >
-          ☀ {snap.sun}
-        </span>
-        <span className="text-emerald-200">
-          波次 {snap.waveIndex}/{snap.totalWaves}
-        </span>
-        <div className="ml-auto flex gap-1">
-          {([1, 1.5, 2] as const).map((r) => (
+          <img
+            src="/assets/ui/sun.png"
+            alt=""
+            className="h-9 w-9 object-contain"
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+          <span className="text-lg font-black text-[#5d4037]">{snap.sun}</span>
+        </div>
+
+        {/* Seed packets */}
+        <div className="flex flex-1 gap-1 overflow-x-auto py-0.5">
+          {loadout.map((id) => {
+            const def = getPlant(id)
+            const cd = engineRef.current.cooldowns[id] ?? 0
+            const selected = snap.selectedPlantId === id
+            const disabled = snap.sun < def.sunCost || cd > 0
+            return (
+              <button
+                key={id}
+                type="button"
+                data-testid={`card-${id}`}
+                disabled={disabled && !selected}
+                onClick={() => select(id)}
+                className={[
+                  'relative flex h-[72px] w-[58px] shrink-0 flex-col items-center overflow-hidden rounded border-2 bg-[#f5e6c8] shadow',
+                  selected
+                    ? 'border-yellow-300 ring-2 ring-yellow-200'
+                    : 'border-[#6d4c41]',
+                  disabled ? 'opacity-55' : 'hover:brightness-105',
+                ].join(' ')}
+              >
+                <img
+                  src={def.sprite}
+                  alt=""
+                  className="mt-1 h-9 w-9 object-contain"
+                  onError={(e) => {
+                    const el = e.target as HTMLImageElement
+                    el.style.display = 'none'
+                  }}
+                />
+                <span className="px-0.5 text-center text-[10px] font-bold leading-tight text-[#3e2723]">
+                  {def.name}
+                </span>
+                <span className="mt-auto w-full bg-[#fff59d] text-center text-[11px] font-black text-[#5d4037]">
+                  {def.sunCost}
+                </span>
+                {cd > 0 && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-xs font-bold text-white">
+                    {cd.toFixed(1)}s
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="flex flex-col justify-center gap-1">
+          <div className="text-[11px] font-bold text-[#1b5e20]">
+            <span data-testid="game-level-id">{levelId}</span>
+            {' · '}
+            {level.name} · 波次 {snap.waveIndex}/{snap.totalWaves}
+          </div>
+          <div className="h-2 w-28 overflow-hidden rounded bg-[#2e7d32]/60">
+            <div
+              className="h-full bg-[#ffeb3b] transition-all"
+              style={{ width: `${wavePct}%` }}
+            />
+          </div>
+          <div className="flex gap-1">
             <Button
-              key={r}
               size="sm"
-              variant={gameSpeed === r ? 'default' : 'outline'}
-              onClick={() => setGameSpeed(r)}
+              variant="secondary"
+              className="h-7 bg-[#efebe9] text-[#3e2723]"
+              onClick={() => setPaused(true)}
             >
-              ×{r}
+              暂停
             </Button>
-          ))}
+            {([1, 1.5, 2] as const).map((r) => (
+              <Button
+                key={r}
+                size="sm"
+                className={`h-7 px-2 ${
+                  gameSpeed === r
+                    ? 'bg-[#ff8f00] text-white'
+                    : 'bg-[#efebe9] text-[#3e2723]'
+                }`}
+                onClick={() => setGameSpeed(r)}
+              >
+                ×{r}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
-      <Progress value={wavePct} className="h-1.5" />
+
       {snap.toast && (
-        <p className="text-center text-sm text-amber-200" data-testid="battle-toast">
+        <p
+          className="pointer-events-none absolute left-1/2 top-24 z-20 -translate-x-1/2 rounded bg-red-900/80 px-4 py-2 text-sm font-bold text-yellow-100 shadow"
+          data-testid="battle-toast"
+        >
           {snap.toast}
         </p>
       )}
-      <div className="flex min-h-0 flex-1 gap-2">
-        <Card className="w-28 shrink-0 overflow-auto">
-          <CardContent className="flex flex-col gap-2 p-2">
-            {loadout.map((id) => {
-              const def = getPlant(id)
-              const cd = engineRef.current.cooldowns[id] ?? 0
-              const selected = snap.selectedPlantId === id
-              const disabled = snap.sun < def.sunCost || cd > 0
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  data-testid={`card-${id}`}
-                  disabled={disabled && !selected}
-                  onClick={() => select(id)}
-                  className={`rounded border p-1 text-left text-xs ${
-                    selected
-                      ? 'border-lime-400 bg-lime-800'
-                      : 'border-emerald-700 bg-emerald-950'
-                  } ${disabled ? 'opacity-50' : ''}`}
-                >
-                  <div className="font-medium">{def.name}</div>
-                  <div>☀{def.sunCost}</div>
-                  {cd > 0 && <div>CD {cd.toFixed(1)}s</div>}
-                </button>
-              )
-            })}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                engineRef.current.collectAllSun()
-                setSnap(engineRef.current.snapshot())
-              }}
-            >
-              收阳光
-            </Button>
-          </CardContent>
-        </Card>
-        {/* Host is ALWAYS in the tree so Phaser can mount after layout. */}
-        <div
-          ref={hostRef}
-          data-testid="battle-canvas-host"
-          data-phaser-ready={phaserReady ? 'true' : 'false'}
-          className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border border-emerald-800 bg-black"
-        >
-          {!phaserReady && (
-            <p className="absolute inset-0 flex items-center justify-center text-sm text-emerald-200/70">
-              战场加载中…
-            </p>
-          )}
-        </div>
+
+      {/* Battlefield — canvas only host, no React children inside canvas */}
+      <div
+        data-testid="battle-canvas-host"
+        data-phaser-ready={ready ? 'true' : 'false'}
+        className="relative min-h-0 flex-1 bg-[#5d8a3e]"
+      >
+        {!ready && (
+          <p className="absolute inset-0 z-[1] flex items-center justify-center text-sm font-bold text-white/90">
+            战场加载中…
+          </p>
+        )}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
       </div>
-      <div className="flex gap-2 text-xs text-emerald-200/80">
+
+      <div className="flex shrink-0 items-center justify-between bg-[#5d4037] px-3 py-1 text-[11px] text-[#ffe0b2]">
         <Link to={getRouteById('levels').path} className="underline">
           返回选关
         </Link>
-        <span>点卡片选植物，再点草地格子种植；点金色阳光收集</span>
+        <span>选种子包 → 点草地种植 · 点阳光收集 · 守住房子</span>
+        <button
+          type="button"
+          className="underline"
+          onClick={() => {
+            engineRef.current.collectAllSun()
+            setSnap(engineRef.current.snapshot())
+          }}
+        >
+          一键收阳光
+        </button>
       </div>
 
       <Dialog open={paused && snap.status === 'playing'} onOpenChange={setPaused}>

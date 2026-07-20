@@ -41,9 +41,23 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => {
   }
 }) as unknown as typeof HTMLCanvasElement.prototype.getContext
 
-// Never boot real Phaser in unit tests (GamePage dynamic-imports this).
+// Never boot real canvas battle loop / Phaser in unit tests.
 vi.mock('@/game/createGame', () => ({
   createBattleGame: vi.fn(() => ({
     destroy: vi.fn(),
   })),
+}))
+vi.mock('@/game/canvasRenderer', () => ({
+  loadAssets: vi.fn(async () => ({
+    plants: {},
+    zombies: {},
+    sun: null,
+    pea: null,
+    snowPea: null,
+    firePea: null,
+    mower: null,
+    lawn: null,
+    house: null,
+  })),
+  startCanvasBattle: vi.fn(() => ({ destroy: vi.fn() })),
 }))
