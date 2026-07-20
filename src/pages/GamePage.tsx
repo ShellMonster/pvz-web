@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -37,13 +37,23 @@ export function GamePage() {
     return level.plantIds.slice(0, level.cardSlots)
   }, [level, params])
 
-  const engineRef = useRef<BattleEngine | null>(null)
+  // Engine is ready on first render so UI + host can paint immediately.
+  // Mid-fight speed is applied via setSpeed — never remount on gameSpeed.
+  const initialSpeedRef = useRef(gameSpeed)
+  const engine = useMemo(() => {
+    const e = new BattleEngine({ level, loadout })
+    e.setSpeed(initialSpeedRef.current)
+    return e
+  }, [level, loadout])
+
+  const engineRef = useRef(engine)
+  engineRef.current = engine
+
   const hostRef = useRef<HTMLDivElement>(null)
-  const [snap, setSnap] = useState<BattleSnapshot | null>(null)
+  const [snap, setSnap] = useState<BattleSnapshot>(() => engine.snapshot())
   const [paused, setPaused] = useState(false)
   const settled = useRef(false)
-  // Read speed only at mount; mid-fight changes go through setSpeed effect.
-  const initialSpeedRef = useRef(gameSpeed)
+  const [phaserReady, setPhaserReady] = useState(false)
 
   useEffect(() => {
     hydrateProgress()
@@ -54,20 +64,26 @@ export function GamePage() {
     for (const id of loadout) unlockSeenPlant(id)
   }, [loadout, unlockSeenPlant])
 
+  // Sync UI when level/loadout creates a new engine.
   useEffect(() => {
-    const engine = new BattleEngine({ level, loadout })
-    engine.setSpeed(initialSpeedRef.current)
-    engineRef.current = engine
-    setSnap(engine.snapshot())
     settled.current = false
+    setPaused(false)
+    setSnap(engine.snapshot())
+    setPhaserReady(false)
+  }, [engine])
 
-    if (!hostRef.current) return
+  // Mount Phaser only after the host div is in the DOM (useLayoutEffect).
+  useLayoutEffect(() => {
+    const host = hostRef.current
+    if (!host) return
+
     let destroyed = false
     let game: { destroy: (removeCanvas: boolean) => void } | null = null
 
-    // Dynamic import so Vitest/jsdom routes tests never load Phaser at module init.
     void import('@/game/createGame').then(({ createBattleGame }) => {
       if (destroyed || !hostRef.current) return
+      // Clear any previous canvas children from a prior mount.
+      hostRef.current.replaceChildren()
       game = createBattleGame({
         parent: hostRef.current,
         engine,
@@ -87,36 +103,28 @@ export function GamePage() {
           }
         },
       })
+      if (!destroyed) setPhaserReady(true)
     })
 
     return () => {
       destroyed = true
       if (game) game.destroy(true)
-      engineRef.current = null
+      if (hostRef.current) hostRef.current.replaceChildren()
     }
-    // Intentionally omit gameSpeed: mid-fight speed must not remount Phaser.
-  }, [level, loadout, recordWin, unlockSeenZombie])
+  }, [engine, level.id, recordWin, unlockSeenZombie])
 
   useEffect(() => {
-    engineRef.current?.setSpeed(gameSpeed)
+    engineRef.current.setSpeed(gameSpeed)
   }, [gameSpeed])
 
   useEffect(() => {
-    engineRef.current?.setPaused(paused)
+    engineRef.current.setPaused(paused)
   }, [paused])
 
   const select = (id: string) => {
-    engineRef.current?.selectPlant(id)
-    setSnap(engineRef.current?.snapshot() ?? null)
+    engineRef.current.selectPlant(id)
+    setSnap(engineRef.current.snapshot())
     playSfx('select')
-  }
-
-  if (!snap) {
-    return (
-      <section data-testid={route.testId}>
-        <p>加载战场…</p>
-      </section>
-    )
   }
 
   const wavePct =
@@ -134,7 +142,10 @@ export function GamePage() {
         <span data-testid="game-level-id" className="text-emerald-200">
           {levelId}
         </span>
-        <span className="rounded bg-yellow-600/80 px-2 py-0.5 text-black" data-testid="sun-count">
+        <span
+          className="rounded bg-yellow-600/80 px-2 py-0.5 text-black"
+          data-testid="sun-count"
+        >
           ☀ {snap.sun}
         </span>
         <span className="text-emerald-200">
@@ -164,7 +175,7 @@ export function GamePage() {
           <CardContent className="flex flex-col gap-2 p-2">
             {loadout.map((id) => {
               const def = getPlant(id)
-              const cd = engineRef.current?.cooldowns[id] ?? 0
+              const cd = engineRef.current.cooldowns[id] ?? 0
               const selected = snap.selectedPlantId === id
               const disabled = snap.sun < def.sunCost || cd > 0
               return (
@@ -186,16 +197,31 @@ export function GamePage() {
                 </button>
               )
             })}
-            <Button size="sm" variant="ghost" onClick={() => engineRef.current?.collectAllSun()}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                engineRef.current.collectAllSun()
+                setSnap(engineRef.current.snapshot())
+              }}
+            >
               收阳光
             </Button>
           </CardContent>
         </Card>
+        {/* Host is ALWAYS in the tree so Phaser can mount after layout. */}
         <div
           ref={hostRef}
           data-testid="battle-canvas-host"
-          className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border border-emerald-800 bg-black"
-        />
+          data-phaser-ready={phaserReady ? 'true' : 'false'}
+          className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border border-emerald-800 bg-black"
+        >
+          {!phaserReady && (
+            <p className="absolute inset-0 flex items-center justify-center text-sm text-emerald-200/70">
+              战场加载中…
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex gap-2 text-xs text-emerald-200/80">
         <Link to={getRouteById('levels').path} className="underline">
@@ -211,7 +237,10 @@ export function GamePage() {
           </DialogHeader>
           <div className="flex flex-col gap-2">
             <Button onClick={() => setPaused(false)}>继续</Button>
-            <Button variant="secondary" onClick={() => navigate(getRouteById('levels').path)}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(getRouteById('levels').path)}
+            >
               退出到选关
             </Button>
           </div>
@@ -232,7 +261,10 @@ export function GamePage() {
           </p>
           <div className="mt-4 flex gap-2">
             <Button onClick={() => navigate(0)}>重开</Button>
-            <Button variant="secondary" onClick={() => navigate(getRouteById('levels').path)}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(getRouteById('levels').path)}
+            >
               选关
             </Button>
           </div>
