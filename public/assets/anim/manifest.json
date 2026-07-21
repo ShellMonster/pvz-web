@@ -1,0 +1,68 @@
+{
+  "plants/sunflower": {
+    "idle": {
+      "frames": 4
+    },
+    "produce": {
+      "frames": 3
+    }
+  },
+  "plants/sunflower_twin": {},
+  "plants/peashooter": {
+    "idle": {
+      "frames": 3
+    },
+    "shoot": {
+      "frames": 3
+    }
+  },
+  "plants/snowpea": {
+    "idle": {
+      "frames": 3
+    },
+    "shoot": {
+      "frames": 3
+    }
+  },
+  "plants/repeater": {},
+  "plants/wallnut": {},
+  "plants/tallnut": {},
+  "plants/torchwood": {},
+  "plants/potatomine": {},
+  "zombies/normal": {
+    "walk": {
+      "frames": 4
+    },
+    "chew": {
+      "frames": 3
+    }
+  },
+  "zombies/flag": {},
+  "zombies/cone": {
+    "walk": {
+      "frames": 4
+    },
+    "chew": {
+      "frames": 3
+    }
+  },
+  "zombies/bucket": {
+    "walk": {
+      "frames": 4
+    },
+    "chew": {
+      "frames": 3
+    }
+  },
+  "zombies/newspaper": {},
+  "zombies/screendoor": {},
+  "zombies/football": {},
+  "zombies/dancer": {},
+  "zombies/balloon": {},
+  "zombies/gargantuar": {},
+  "ui/sun": {
+    "spin": {
+      "frames": 4
+    }
+  }
+}
