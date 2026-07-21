@@ -18,6 +18,12 @@ export interface PlantEntity {
   armed: boolean
   armTimer: number
   consumable: boolean
+  /** 射击后坐力动画剩余时间（秒） */
+  shootAnim: number
+  /** 产阳光弹跳动画剩余时间（秒） */
+  produceAnim: number
+  /** 种植落地动画剩余时间（秒） */
+  plantAnim: number
 }
 
 export interface ZombieEntity {
@@ -34,6 +40,10 @@ export interface ZombieEntity {
   flying: boolean
   rage: boolean
   summonCd: number
+  /** 走路相位（累计），用于脚步循环 */
+  walkPhase: number
+  /** 受击闪白剩余时间 */
+  hitFlash: number
 }
 
 export interface ProjectileEntity {
@@ -44,6 +54,8 @@ export interface ProjectileEntity {
   slows: boolean
   fire: boolean
   speed: number
+  /** 旋转相位 */
+  spin: number
 }
 
 export interface SunEntity {
@@ -52,6 +64,9 @@ export interface SunEntity {
   x: number
   y: number
   ttl: number
+  /** 出生下落动画剩余 */
+  dropAnim: number
+  spin: number
 }
 
 export interface BattleSnapshot {
@@ -183,6 +198,9 @@ export class BattleEngine {
       armTimer: def.behavior === 'potato_mine' ? 14 : 0,
       consumable:
         def.behavior === 'instant_aoe' || def.behavior === 'row_burn',
+      shootAnim: 0,
+      produceAnim: 0,
+      plantAnim: 0.35,
     }
     this.plants.push(entity)
     this.grid[row]![col] = entity
@@ -271,6 +289,8 @@ export class BattleEngine {
       flying: def.behavior === 'balloon',
       rage: false,
       summonCd: def.behavior === 'dancer' ? 8 : 0,
+      walkPhase: Math.random() * Math.PI * 2,
+      hitFlash: 0,
     }
     this.zombies.push(z)
   }
@@ -291,12 +311,17 @@ export class BattleEngine {
       x,
       y,
       ttl: 12,
+      dropAnim: 0.45,
+      spin: Math.random() * Math.PI * 2,
     })
   }
 
   private tickPlants(dt: number) {
     for (const p of [...this.plants]) {
       const def = getPlant(p.plantId)
+      p.shootAnim = Math.max(0, p.shootAnim - dt)
+      p.produceAnim = Math.max(0, p.produceAnim - dt)
+      p.plantAnim = Math.max(0, p.plantAnim - dt)
       if (def.behavior === 'potato_mine' && !p.armed) {
         p.armTimer -= dt
         if (p.armTimer <= 0) p.armed = true
@@ -305,6 +330,7 @@ export class BattleEngine {
         p.sunCd -= dt
         if (p.sunCd <= 0) {
           p.sunCd = def.sunIntervalMs / 1000
+          p.produceAnim = 0.45
           const pos = cellCenter(p.row, p.col)
           this.dropSun(def.sunProduce, pos.x, pos.y - 20)
         }
@@ -315,6 +341,7 @@ export class BattleEngine {
           p.fireCd -= dt
           if (p.fireCd <= 0) {
             p.fireCd = def.fireIntervalMs / 1000
+            p.shootAnim = 0.28
             const shots = p.plantId === 'repeater' ? 2 : 1
             const origin = cellCenter(p.row, p.col)
             for (let i = 0; i < shots; i++) {
@@ -326,6 +353,7 @@ export class BattleEngine {
                 slows: def.slows,
                 fire: false,
                 speed: 320,
+                spin: 0,
               })
             }
           }
@@ -349,6 +377,7 @@ export class BattleEngine {
   private tickProjectiles(dt: number) {
     for (const b of [...this.projectiles]) {
       b.x += b.speed * dt
+      b.spin += dt * 14
       // torch upgrade
       for (const p of this.plants) {
         if (getPlant(p.plantId).behavior !== 'torch') continue
@@ -375,6 +404,7 @@ export class BattleEngine {
 
   private tickZombies(dt: number) {
     for (const z of [...this.zombies]) {
+      z.hitFlash = Math.max(0, z.hitFlash - dt)
       if (z.slowTimer > 0) {
         z.slowTimer -= dt
         z.speed = z.baseSpeed * 0.5
@@ -404,6 +434,8 @@ export class BattleEngine {
       const blocker = this.plantInFront(z)
       if (blocker && !z.flying) {
         z.chewing = true
+        // 啃食时也有小幅度点头相位
+        z.walkPhase += dt * 8
         if (def.behavior === 'gargantuar') {
           this.removePlant(blocker)
           z.chewing = false
@@ -413,7 +445,10 @@ export class BattleEngine {
         }
       } else {
         z.chewing = false
-        z.x -= z.speed * dt
+        const moved = z.speed * dt
+        z.x -= moved
+        // 走路相位与移动距离挂钩，停住就停步
+        z.walkPhase += (moved / 18) * Math.PI
       }
 
       if (z.x <= ZOMBIE_REACH_X) {
@@ -432,7 +467,11 @@ export class BattleEngine {
   }
 
   private tickSuns(dt: number) {
-    for (const s of this.suns) s.ttl -= dt
+    for (const s of this.suns) {
+      s.ttl -= dt
+      s.dropAnim = Math.max(0, s.dropAnim - dt)
+      s.spin += dt * 3
+    }
     this.suns = this.suns.filter((s) => s.ttl > 0)
   }
 
@@ -471,6 +510,7 @@ export class BattleEngine {
   }
 
   private damageZombie(z: ZombieEntity, dmg: number, slows: boolean) {
+    z.hitFlash = 0.12
     if (z.armorHp > 0) {
       z.armorHp -= dmg
       if (z.armorHp < 0) {
