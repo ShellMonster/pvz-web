@@ -62,7 +62,7 @@ const ASSETS = [
     dir: 'backgrounds',
     opaque: true,
     prompt:
-      'wide daytime suburban backyard lawn battlefield for tower defense, house silhouette left, green grass, blue sky, no characters, no text, 16:9 scene',
+      'SIDE VIEW Plants vs Zombies style lawn battlefield NOT top-down, house far left only, five horizontal grass lanes left-to-right like sports field strips alternating green shades, dirt path by house, blue sky top, fence far back, zombies enter from right, no characters no text, 16:9 landscape',
   },
   {
     id: 'house',

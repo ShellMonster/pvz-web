@@ -294,94 +294,50 @@ export function startCanvasBattle(opts: {
 
   /** 侧视横铺草地：像原作一样贴在「地面」上，不是俯视整块院子 */
   const drawSideViewLawn = () => {
-    // 天空
-    const sky = ctx.createLinearGradient(0, 0, 0, LAWN.originY + 20)
-    sky.addColorStop(0, '#5eb3e8')
-    sky.addColorStop(0.55, '#87ceeb')
-    sky.addColorStop(1, '#b8e0a0')
-    ctx.fillStyle = sky
-    ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
+    const lawnImg = assets.lawn
+    const isWideSideView =
+      lawnImg &&
+      lawnImg.naturalWidth > 0 &&
+      lawnImg.naturalWidth >= lawnImg.naturalHeight * 1.25
 
-    // 远景篱笆线
-    ctx.fillStyle = '#c8e6c9'
-    ctx.fillRect(0, LAWN.originY - 18, DESIGN_WIDTH, 22)
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)'
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    ctx.moveTo(160, LAWN.originY - 8)
-    ctx.lineTo(DESIGN_WIDTH, LAWN.originY - 8)
-    ctx.stroke()
+    if (isWideSideView && lawnImg) {
+      // 正确的侧视横条草地：整屏铺底
+      ctx.drawImage(lawnImg, 0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
+    } else {
+      // 无图或俯视图时：程序画侧视横向车道
+      const sky = ctx.createLinearGradient(0, 0, 0, LAWN.originY + 20)
+      sky.addColorStop(0, '#5eb3e8')
+      sky.addColorStop(0.55, '#87ceeb')
+      sky.addColorStop(1, '#b8e0a0')
+      ctx.fillStyle = sky
+      ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
 
-    // 左侧房前泥地/走道（小推车区域）
-    const dirt = ctx.createLinearGradient(0, 0, LAWN.originX, 0)
-    dirt.addColorStop(0, '#8d6e63')
-    dirt.addColorStop(0.7, '#a1887f')
-    dirt.addColorStop(1, '#6d4c41')
-    ctx.fillStyle = dirt
-    ctx.fillRect(0, LAWN.originY, LAWN.originX, GRID_ROWS * LAWN.cellH)
+      ctx.fillStyle = '#8d6e63'
+      ctx.fillRect(0, LAWN.originY, LAWN.originX, GRID_ROWS * LAWN.cellH)
+      const rightX = LAWN.originX + GRID_COLS * LAWN.cellW
+      ctx.fillStyle = '#7d6b4f'
+      ctx.fillRect(rightX, LAWN.originY, DESIGN_WIDTH - rightX, GRID_ROWS * LAWN.cellH)
 
-    // 右侧僵尸入口泥土
-    const rightX = LAWN.originX + GRID_COLS * LAWN.cellW
-    ctx.fillStyle = '#7d6b4f'
-    ctx.fillRect(rightX, LAWN.originY, DESIGN_WIDTH - rightX, GRID_ROWS * LAWN.cellH)
-
-    // 5 行横向草地（贴地）
-    for (let r = 0; r < GRID_ROWS; r++) {
-      const y = LAWN.originY + r * LAWN.cellH
-      // 行底色：深浅交替，形成「贴地车道」
-      const rowTint = r % 2 === 0 ? '#5dad3a' : '#6fbf45'
-      ctx.fillStyle = rowTint
-      ctx.fillRect(LAWN.originX, y, GRID_COLS * LAWN.cellW, LAWN.cellH)
-
-      // 格子棋盘（横向铺在地面上）
-      for (let c = 0; c < GRID_COLS; c++) {
-        const x = LAWN.originX + c * LAWN.cellW
-        if ((r + c) % 2 === 0) {
-          ctx.fillStyle = 'rgba(255,255,255,0.06)'
-          ctx.fillRect(x, y, LAWN.cellW, LAWN.cellH)
-        } else {
-          ctx.fillStyle = 'rgba(0,0,0,0.05)'
-          ctx.fillRect(x, y, LAWN.cellW, LAWN.cellH)
-        }
-        // 轻微草纹理竖线（贴地感）
-        ctx.strokeStyle = 'rgba(40,100,30,0.12)'
-        ctx.lineWidth = 1
-        for (let g = 4; g < LAWN.cellW; g += 10) {
-          ctx.beginPath()
-          ctx.moveTo(x + g, y + LAWN.cellH * 0.55)
-          ctx.lineTo(x + g + 2, y + LAWN.cellH - 4)
-          ctx.stroke()
-        }
-      }
-
-      // 行分割线
-      ctx.strokeStyle = 'rgba(30,80,20,0.35)'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.moveTo(LAWN.originX, y + 0.5)
-      ctx.lineTo(LAWN.originX + GRID_COLS * LAWN.cellW, y + 0.5)
-      ctx.stroke()
-    }
-
-    // 草坪底边
-    const lawnBottom = LAWN.originY + GRID_ROWS * LAWN.cellH
-    ctx.fillStyle = '#3d6b1f'
-    ctx.fillRect(0, lawnBottom, DESIGN_WIDTH, DESIGN_HEIGHT - lawnBottom)
-    // 底边土坡
-    ctx.fillStyle = '#5d4037'
-    ctx.fillRect(0, lawnBottom, DESIGN_WIDTH, 8)
-
-    // 若有侧视背景图，仅作天空/装饰半透明叠加（避免俯视院子盖住格子）
-    if (assets.lawn && assets.lawn.naturalWidth > assets.lawn.naturalHeight * 1.2) {
-      // 宽图才当背景：铺满但压暗，草地格子仍清晰
-      ctx.globalAlpha = 0.28
-      ctx.drawImage(assets.lawn, 0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
-      ctx.globalAlpha = 1
-      // 再盖一层半透明草地保证「贴地」
       for (let r = 0; r < GRID_ROWS; r++) {
         const y = LAWN.originY + r * LAWN.cellH
-        ctx.fillStyle = r % 2 === 0 ? 'rgba(93,173,58,0.55)' : 'rgba(111,191,69,0.55)'
+        ctx.fillStyle = r % 2 === 0 ? '#5dad3a' : '#6fbf45'
         ctx.fillRect(LAWN.originX, y, GRID_COLS * LAWN.cellW, LAWN.cellH)
+      }
+      const lawnBottom = LAWN.originY + GRID_ROWS * LAWN.cellH
+      ctx.fillStyle = '#3d6b1f'
+      ctx.fillRect(0, lawnBottom, DESIGN_WIDTH, DESIGN_HEIGHT - lawnBottom)
+    }
+
+    // 种植格：半透明叠在「贴地」草道上，方便对准
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        const x = LAWN.originX + c * LAWN.cellW
+        const y = LAWN.originY + r * LAWN.cellH
+        ctx.fillStyle =
+          (r + c) % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+        ctx.fillRect(x + 1, y + 1, LAWN.cellW - 2, LAWN.cellH - 2)
+        ctx.strokeStyle = 'rgba(20,70,15,0.22)'
+        ctx.strokeRect(x + 0.5, y + 0.5, LAWN.cellW - 1, LAWN.cellH - 1)
       }
     }
   }
@@ -389,35 +345,37 @@ export function startCanvasBattle(opts: {
   const paint = () => {
     const snap = engine.snapshot()
 
-    // 始终用侧视横向草地，不用俯视院子图硬拉全屏
     drawSideViewLawn()
 
-    // 左侧房子（贴在走道上）
-    if (assets.house && assets.house.naturalWidth) {
-      const hh = GRID_ROWS * LAWN.cellH + 40
-      const hw = 150
-      ctx.drawImage(
-        assets.house,
-        8,
-        LAWN.originY - 20,
-        hw,
-        hh,
-      )
-    } else {
-      ctx.fillStyle = '#d7ccc8'
-      ctx.fillRect(16, LAWN.originY, 120, GRID_ROWS * LAWN.cellH - 10)
-      ctx.fillStyle = '#c0392b'
-      ctx.beginPath()
-      ctx.moveTo(10, LAWN.originY + 10)
-      ctx.lineTo(76, LAWN.originY - 30)
-      ctx.lineTo(142, LAWN.originY + 10)
-      ctx.closePath()
-      ctx.fill()
-      ctx.fillStyle = '#5d4037'
-      ctx.fillRect(55, LAWN.originY + 120, 36, 70)
-      ctx.fillStyle = '#fff8e1'
-      ctx.font = 'bold 14px "PingFang SC", sans-serif'
-      ctx.fillText('房子', 48, LAWN.originY + 50)
+    // 侧视背景里若已有房子则不再硬叠；无宽图时画简易房子
+    const lawnImg = assets.lawn
+    const hasSideBg =
+      lawnImg &&
+      lawnImg.naturalWidth > 0 &&
+      lawnImg.naturalWidth >= lawnImg.naturalHeight * 1.25
+    if (!hasSideBg) {
+      if (assets.house && assets.house.naturalWidth) {
+        ctx.drawImage(
+          assets.house,
+          8,
+          LAWN.originY - 20,
+          150,
+          GRID_ROWS * LAWN.cellH + 40,
+        )
+      } else {
+        ctx.fillStyle = '#d7ccc8'
+        ctx.fillRect(16, LAWN.originY, 120, GRID_ROWS * LAWN.cellH - 10)
+        ctx.fillStyle = '#c0392b'
+        ctx.beginPath()
+        ctx.moveTo(10, LAWN.originY + 10)
+        ctx.lineTo(76, LAWN.originY - 30)
+        ctx.lineTo(142, LAWN.originY + 10)
+        ctx.closePath()
+        ctx.fill()
+        ctx.fillStyle = '#fff8e1'
+        ctx.font = 'bold 14px "PingFang SC", sans-serif'
+        ctx.fillText('房子', 48, LAWN.originY + 50)
+      }
     }
 
     // mowers
